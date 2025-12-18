@@ -1,0 +1,32 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main, master ] # 支援 main 或 master 分支的推送
+
+# 給予 Actions 修改 Repository 內容的權限 (為了發布 gh-pages)
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code (下載程式碼)
+        uses: actions/checkout@v3
+
+      - name: Inject API Key (注入 API Key)
+        env:
+          # 讀取剛剛設定的 Secret
+          API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          # 使用 sed 指令將 index.html 裡的佔位符替換成真實 Key
+          sed -i "s|__GEMINI_API_KEY_PLACEHOLDER__|$API_KEY|g" index.html
+          echo "API Key injected successfully."
+
+      - name: Deploy to GitHub Pages (發布到 GitHub Pages)
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+
